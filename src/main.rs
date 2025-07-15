@@ -1,24 +1,12 @@
-use axum::{response::Json, routing::get, Router};
-use serde::Serialize;
+mod handler;
+use axum::{routing::get, Router};
+use handler::health::health;
 use std::env;
 use tower_http::cors::CorsLayer;
 
 #[derive(Clone)]
 struct AppState {
     db: sea_orm::DatabaseConnection,
-}
-
-#[derive(Serialize)]
-struct HealthResponse {
-    status: String,
-    message: String,
-}
-
-async fn health() -> Json<HealthResponse> {
-    Json(HealthResponse {
-        status: "ok".to_string(),
-        message: "Server is running".to_string(),
-    })
 }
 
 async fn create_app(db: sea_orm::DatabaseConnection) -> Router {
