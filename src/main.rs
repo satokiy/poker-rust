@@ -1,8 +1,13 @@
 mod handler;
+// API framework routing
 use axum::{routing::get, Router};
 use handler::health::health;
 use std::env;
+
 use tower_http::cors::CorsLayer;
+// anyhowはRustのデフォルトのResultを扱いやすくしてくれるcrate
+// https://zenn.dev/yukinarit/articles/b39cd42820f29e
+use anyhow::Result;
 
 #[derive(Clone)]
 struct AppState {
@@ -19,7 +24,7 @@ async fn create_app(db: sea_orm::DatabaseConnection) -> Router {
 }
 
 #[tokio::main]
-async fn main() -> anyhow::Result<()> {
+async fn main() -> Result<()> {
     tracing_subscriber::fmt::init();
 
     let database_url = env::var("DATABASE_URL").unwrap_or_else(|_| {
