@@ -1,0 +1,20 @@
+post:
+  operationId: judgeHand
+  summary: Judge the hand of cards
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: './schema/PostJudgeHandRequestBody.yml'
+  responses:
+    '200':
+      description: Hand judged successfully
+      content:
+        application/json:
+          schema:
+            $ref: './schema/PostJudgeHandResponseBody.yml'
+    '400':
+      description: Bad request, invalid input
+    '500':
+      description: Internal server error

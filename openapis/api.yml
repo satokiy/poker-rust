@@ -1,0 +1,13 @@
+openapi: 3.0.0
+info:
+  title: Poker API
+  version: 0.0.1
+paths:
+#  /v1/games:
+#    $ref: './v1_games.yml'
+  /v1/decks/draw:
+    $ref: './v1_decks_draw.yml'
+  /v1/hands/exchange:
+    $ref: './v1_hands_exchange.yml'
+#  /v1/hands/judge:
+#    $ref: './v1_hands_judge.yml'

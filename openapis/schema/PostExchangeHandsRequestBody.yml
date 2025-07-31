@@ -1,0 +1,8 @@
+type: object
+properties:
+  cards:
+    type: array
+    items:
+      $ref: '../model/Card.yml'
+required:
+  - cards

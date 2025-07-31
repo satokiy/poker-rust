@@ -1,0 +1,16 @@
+post:
+  operationId: draw
+  summary: Draw cards from the deck
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: './schema/PostDrawCardsRequestBody.yml'
+  responses:
+    '200':
+      description: Cards drawn successfully
+      content:
+        application/json:
+          schema:
+            $ref: './schema/PostDrawCardsResponseBody.yml'

@@ -1,0 +1,16 @@
+post:
+  operationId: exchangeHand
+  description: 手札のカードを交換します
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: './schema/PostExchangeHandsRequestBody.yml'
+  responses:
+    '200':
+      description: Cards drawn successfully
+      content:
+        application/json:
+          schema:
+            $ref: './schema/PostExchangeHandsResponseBody.yml'

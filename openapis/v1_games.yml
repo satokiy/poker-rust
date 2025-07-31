@@ -1,0 +1,20 @@
+post:
+  operationId: createGame
+  summary: Create a new game
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: './schema/PostCreateGameRequestBody.yml'
+  responses:
+    '201':
+      description: Game created successfully
+      content:
+        application/json:
+          schema:
+            $ref: './schema/PostCreateGameResponseBody.yml'
+    '400':
+      description: Bad request, invalid input
+    '500':
+      description: Internal server error
