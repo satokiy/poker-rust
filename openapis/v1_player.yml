@@ -1,0 +1,20 @@
+post:
+  operationId: createPlayer
+  summary: Create a new player
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: './schema/PostCreatePlayerRequestBody.yml'
+  responses:
+    '201':
+      description: Player created successfully
+      content:
+        application/json:
+          schema:
+            $ref: './schema/PostCreatePlayerResponseBody.yml'
+    '400':
+      description: Bad request, invalid input
+    '500':
+      description: Internal server error

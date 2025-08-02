@@ -1,6 +1,8 @@
+mod domain;
 mod handler;
 // API framework routing
-use axum::{routing::get, Router};
+use axum::{routing::get, routing::post, Router};
+use handler::draw::draw;
 use handler::health::health;
 use std::env;
 
@@ -19,6 +21,8 @@ async fn create_app(db: sea_orm::DatabaseConnection) -> Router {
 
     Router::new()
         .route("/health", get(health))
+        .route("/v1/decks/draw", post(draw))
+        .route("/player", post(create_player))
         .layer(CorsLayer::permissive())
         .with_state(state)
 }

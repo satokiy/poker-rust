@@ -9,7 +9,7 @@ post:
           $ref: './schema/PostCreateGameRequestBody.yml'
   responses:
     '201':
-      description: Game created successfully
+      description: Game created successfully 
       content:
         application/json:
           schema:
@@ -18,3 +18,22 @@ post:
       description: Bad request, invalid input
     '500':
       description: Internal server error
+
+get:
+  operationId: getGame
+  summary: Retrieve a game by ID
+  parameters:
+    - name: game_id
+      in: path
+      required: true
+      schema:
+        type: string
+  responses:
+    '200':
+      description: Game retrieved successfully
+      content:
+        application/json:
+          schema:
+            $ref: './schema/GetGameResponseBody.yml'
+    '404':
+      description: Game not found 

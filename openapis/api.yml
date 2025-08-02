@@ -3,8 +3,10 @@ info:
   title: Poker API
   version: 0.0.1
 paths:
-#  /v1/games:
-#    $ref: './v1_games.yml'
+  /v1/games:
+   $ref: './v1_games.yml'
+  /v1/player:
+    $ref: './v1_player.yml'
   /v1/decks/draw:
     $ref: './v1_decks_draw.yml'
   /v1/hands/exchange:

@@ -1,0 +1,11 @@
+allOf:
+  - $ref: './Player.yml'
+  - type: object
+    properties:
+      hand:
+        type: array
+        items:
+          $ref: './Card.yml'
+    required:
+      - hand
+

@@ -8,9 +8,22 @@ services:
       POSTGRES_USER: poker_user
       POSTGRES_PASSWORD: poker_password
     ports:
-      - "5432:5432"
+      - "6432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    # command: >
+    #   postgres
+    #   -c shared_preload_libraries=auto_explain
+    #   -c auto_explain.log_min_duration=0
+    #   -c auto_explain.log_analyze=on
+    #   -c auto_explain.log_buffers=on
+    #   -c auto_explain.log_timing=on
+    #   -c auto_explain.log_triggers=on
+    #   -c auto_explain.log_verbose=on
+    #   -c auto_explain.log_nested_statements=on
+    #   -c log_statement=all
+    #   -c log_destination=stderr
+    #   -c logging_collector=off
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U poker_user -d poker_db"]
       interval: 10s

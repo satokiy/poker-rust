@@ -1,0 +1,6 @@
+type: object
+properties:
+  player:
+    $ref: '../model/Player.yml'
+required:
+  - player

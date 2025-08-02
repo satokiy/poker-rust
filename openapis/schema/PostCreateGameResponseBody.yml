@@ -1,0 +1,7 @@
+type: object
+properties:
+  game_id:
+    type: integer
+    description: The unique identifier of the game
+required:
+  - game_id

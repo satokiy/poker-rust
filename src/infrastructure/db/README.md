@@ -6,7 +6,7 @@
 
 ### 1. エンティティの自動生成
 
-Dockerを使って、`sea-orm-cli`でエンティティを自動生成できます。
+`sea-orm-cli`でエンティティを自動生成できます。
 
 ```sh
 sea-orm-cli generate entity -o src/infrastructure/db/entity

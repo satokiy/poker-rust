@@ -1,0 +1,8 @@
+type: object
+properties:
+  players:
+    type: array
+    items:
+      $ref: '../model/Player.yml'
+required:
+  - players

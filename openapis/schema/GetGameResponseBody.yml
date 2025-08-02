@@ -1,0 +1,4 @@
+type: object
+properties:
+  game:
+    $ref: '../model/Game.yml'
