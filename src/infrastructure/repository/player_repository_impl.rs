@@ -1,10 +1,25 @@
+use crate::repository::player_repository::PlayerRepository;
+use sea_orm::DatabaseConnection;
 
 struct PlayerRepositoryImpl {
-  db: db
+  pub db: DatabaseConnection,
 }
 
+#[async_trait::async_trait]
 impl PlayerRepository for PlayerRepositoryImpl {
-  fn insert_player(&self, name: String) -> i32 {
-    1
+  async fn insert_player(&self, name: String) -> i32 {
+    let player = player::ActiveModel {
+      name: Set(name),
+      ..Default::default()
+    };
+
+    let res = player.insert(&self.db).await;
+    match res {
+      Ok(player) => player.id,
+      Err(e) => {
+        eprintln!("Error inserting player: {}", e);
+        -1 // or handle the error as needed
+      }
+    }
   }
 }

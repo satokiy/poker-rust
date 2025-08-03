@@ -1,9 +1,15 @@
 mod domain;
 mod handler;
+mod repository;
+
 // API framework routing
+use std::sync::Arc;
 use axum::{routing::get, routing::post, Router};
 use handler::draw::draw;
 use handler::health::health;
+use handler::player::create_player;
+use domain::services::player_service::PlayerService;
+use domain::services::player_service::PlayerServiceImpl;
 use std::env;
 
 use tower_http::cors::CorsLayer;
@@ -13,16 +19,19 @@ use anyhow::Result;
 
 #[derive(Clone)]
 struct AppState {
-    db: sea_orm::DatabaseConnection,
+    pub player_service: Arc<dyn PlayerService>
 }
 
 async fn create_app(db: sea_orm::DatabaseConnection) -> Router {
-    let state = AppState { db };
+    let service = PlayerServiceImpl {}
+    let state = AppState {
+        player_service: Arc::new(service),
+    };
 
     Router::new()
         .route("/health", get(health))
         .route("/v1/decks/draw", post(draw))
-        .route("/player", post(create_player))
+        .route("/v1/player", post(create_player))
         .layer(CorsLayer::permissive())
         .with_state(state)
 }
