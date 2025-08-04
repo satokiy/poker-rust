@@ -1,31 +1,61 @@
 mod domain;
 mod handler;
+mod infrastructure;
 mod repository;
 
 // API framework routing
-use std::sync::Arc;
 use axum::{routing::get, routing::post, Router};
+use domain::services::player_service::PlayerService;
+use domain::services::player_service_impl::PlayerServiceImpl;
 use handler::draw::draw;
 use handler::health::health;
 use handler::player::create_player;
-use domain::services::player_service::PlayerService;
-use domain::services::player_service::PlayerServiceImpl;
+use infrastructure::repository::player_repository_impl::PlayerRepositoryImpl;
+use sea_orm::DatabaseConnection;
 use std::env;
+use std::sync::Arc;
 
 use tower_http::cors::CorsLayer;
 // anyhowはRustのデフォルトのResultを扱いやすくしてくれるcrate
 // https://zenn.dev/yukinarit/articles/b39cd42820f29e
 use anyhow::Result;
 
+// アプリ全体で共有したい状態やサービスをまとめた構造体。リクエストハンドラに依存を注入するために定義
 #[derive(Clone)]
 struct AppState {
-    pub player_service: Arc<dyn PlayerService>
+    // Arc<T> は「複数のスレッドで安全に共有できる参照カウント付きスマートポインタ」
+    // Webサーバなどで「1つのサービスを複数リクエストで共有」したいときに使う
+    pub player_service: Arc<dyn PlayerService>,
+}
+
+struct Repositories {
+    player_repository: PlayerRepositoryImpl,
+}
+
+struct Services {
+    player_service: PlayerServiceImpl<PlayerRepositoryImpl>,
+}
+
+fn init_repositories(db: DatabaseConnection) -> Repositories {
+    let player_repository = PlayerRepositoryImpl { db };
+
+    Repositories { player_repository }
+}
+
+fn init_services(repositories: Repositories) -> Services {
+    let player_service = PlayerServiceImpl {
+        repository: repositories.player_repository,
+    };
+
+    Services { player_service }
 }
 
 async fn create_app(db: sea_orm::DatabaseConnection) -> Router {
-    let service = PlayerServiceImpl {}
+    let repositories = init_repositories(db);
+    let services = init_services(repositories);
+
     let state = AppState {
-        player_service: Arc::new(service),
+        player_service: Arc::new(services.player_service),
     };
 
     Router::new()
