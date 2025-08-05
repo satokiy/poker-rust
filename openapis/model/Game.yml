@@ -1,0 +1,20 @@
+type: object
+properties:
+  id:
+    type: integer
+  players:
+    type: array
+    items:
+      $ref: './Player.yml'
+  status:
+    type: string
+    enum: [waiting, playing, finished]
+  created_at:
+    type: string
+    format: date-time
+required:
+  - id
+  - players
+  - status
+  - created_at
+
