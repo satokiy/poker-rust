@@ -1,8 +1,8 @@
 mod domain;
+mod error;
 mod handler;
 mod infrastructure;
 mod repository;
-mod error;
 
 // API framework routing
 use axum::{routing::get, routing::post, Router};

@@ -2,6 +2,9 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum AppError {
-  #[error("not found: {0}")]
-  NotFound(String)
+    #[error("not found")]
+    NotFound(),
+
+    #[error("internal error: {0}")]
+    Internal(String),
 }
