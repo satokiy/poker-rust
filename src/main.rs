@@ -1,4 +1,5 @@
 mod domain;
+mod error;
 mod handler;
 mod infrastructure;
 mod repository;
@@ -71,7 +72,7 @@ async fn main() -> Result<()> {
     tracing_subscriber::fmt::init();
 
     let database_url = env::var("DATABASE_URL").unwrap_or_else(|_| {
-        "postgres://poker_user:poker_password@localhost:5432/poker_db".to_string()
+        "postgres://poker_user:poker_password@localhost:6432/poker_db".to_string()
     });
 
     let db = sea_orm::Database::connect(&database_url).await?;
