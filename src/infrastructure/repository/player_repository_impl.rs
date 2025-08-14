@@ -27,7 +27,7 @@ impl PlayerRepository for PlayerRepositoryImpl {
         match res {
             Ok(player) => Ok(player.id),
             Err(e) => {
-                eprintln!("Error inserting player: {}", e);
+                eprintln!("Error inserting player: {e}");
                 Err(RepositoryError::Internal(String::from(
                     "Error inserting player",
                 )))
@@ -41,7 +41,7 @@ impl PlayerRepository for PlayerRepositoryImpl {
         match res {
             Ok(Some(player)) => Ok(player),
             Ok(None) => Err(RepositoryError::NotFound),
-            Err(e) => Err(RepositoryError::Internal(format!("DB error: {}", e))),
+            Err(e) => Err(RepositoryError::Internal(format!("DB error: {e}"))),
         }
     }
 }

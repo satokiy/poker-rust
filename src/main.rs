@@ -10,7 +10,7 @@ use domain::services::player_service::PlayerService;
 use domain::services::player_service_impl::PlayerServiceImpl;
 use handler::draw::draw;
 use handler::health::health;
-use handler::player::create_player;
+use handler::player::{create_player, get_player};
 use infrastructure::repository::player_repository_impl::PlayerRepositoryImpl;
 use sea_orm::DatabaseConnection;
 use std::env;
@@ -63,6 +63,7 @@ async fn create_app(db: sea_orm::DatabaseConnection) -> Router {
         .route("/health", get(health))
         .route("/v1/decks/draw", post(draw))
         .route("/v1/player", post(create_player))
+        .route("/v1/player/{id}", get(get_player))
         .layer(CorsLayer::permissive())
         .with_state(state)
 }
