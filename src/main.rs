@@ -9,6 +9,7 @@ use axum::{routing::get, routing::post, Router};
 use domain::services::player_service::PlayerService;
 use domain::services::player_service_impl::PlayerServiceImpl;
 use handler::draw::draw;
+use handler::game::create_game;
 use handler::health::health;
 use handler::player::{create_player, get_player};
 use infrastructure::repository::player_repository_impl::PlayerRepositoryImpl;
@@ -21,42 +22,61 @@ use tower_http::cors::CorsLayer;
 // https://zenn.dev/yukinarit/articles/b39cd42820f29e
 use anyhow::Result;
 
+use crate::domain::services::game_service::GameService;
+use crate::domain::services::game_service_impl::GameServiceImpl;
+use crate::infrastructure::repository::game_repository_impl::GameRepositoryImpl;
+
 // アプリ全体で共有したい状態やサービスをまとめた構造体。リクエストハンドラに依存を注入するために定義
 #[derive(Clone)]
 struct AppState {
     // Arc<T> は「複数のスレッドで安全に共有できる参照カウント付きスマートポインタ」
     // Webサーバなどで「1つのサービスを複数リクエストで共有」したいときに使う
     pub player_service: Arc<dyn PlayerService>,
+    pub game_service: Arc<dyn GameService>,
 }
 
 struct Repositories {
     player_repository: PlayerRepositoryImpl,
+    game_repository: GameRepositoryImpl,
 }
 
 struct Services {
     player_service: PlayerServiceImpl<PlayerRepositoryImpl>,
+    game_service: GameServiceImpl<GameRepositoryImpl>,
 }
 
-fn init_repositories(db: DatabaseConnection) -> Repositories {
-    let player_repository = PlayerRepositoryImpl { db };
+fn init_repositories(db: Arc<DatabaseConnection>) -> Repositories {
+    let player_repository = PlayerRepositoryImpl { db: db.clone() };
+    let game_repository = GameRepositoryImpl { db: db.clone() };
 
-    Repositories { player_repository }
+    Repositories {
+        player_repository,
+        game_repository,
+    }
 }
 
 fn init_services(repositories: Repositories) -> Services {
     let player_service = PlayerServiceImpl {
         repository: repositories.player_repository,
     };
+    let game_service = GameServiceImpl {
+        repository: repositories.game_repository,
+    };
 
-    Services { player_service }
+    Services {
+        player_service,
+        game_service,
+    }
 }
 
 async fn create_app(db: sea_orm::DatabaseConnection) -> Router {
+    let db = Arc::new(db);
     let repositories = init_repositories(db);
     let services = init_services(repositories);
 
     let state = AppState {
         player_service: Arc::new(services.player_service),
+        game_service: Arc::new(services.game_service),
     };
 
     Router::new()
@@ -64,6 +84,7 @@ async fn create_app(db: sea_orm::DatabaseConnection) -> Router {
         .route("/v1/decks/draw", post(draw))
         .route("/v1/player", post(create_player))
         .route("/v1/player/{id}", get(get_player))
+        .route("/v1/game", post(create_game))
         .layer(CorsLayer::permissive())
         .with_state(state)
 }
