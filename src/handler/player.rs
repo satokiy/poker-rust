@@ -27,9 +27,9 @@ pub async fn create_player(
     State(state): State<AppState>,
     Json(req): Json<CreatePlayerRequest>,
 ) -> impl IntoResponse {
-    let res = state.player_service.create_player(req.name).await;
+    let result = state.player_service.create_player(req.name).await;
 
-    match res {
+    match result {
         Ok(id) => Json(CreatePlayerResponse { id }).into_response(),
         Err(e) => (
             StatusCode::INTERNAL_SERVER_ERROR,

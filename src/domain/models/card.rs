@@ -1,6 +1,6 @@
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Suit {
     Heart,
     Diamond,
@@ -8,7 +8,7 @@ pub enum Suit {
     Spade,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum CardNumber {
     Ace = 1,
     Two,
@@ -25,7 +25,7 @@ pub enum CardNumber {
     King,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 pub struct Card {
     pub suit: Suit,
     pub number: CardNumber,
