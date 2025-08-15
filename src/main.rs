@@ -6,6 +6,7 @@ mod repository;
 
 // API framework routing
 use axum::{routing::get, routing::post, Router};
+use chrono::FixedOffset;
 use domain::services::player_service::PlayerService;
 use domain::services::player_service_impl::PlayerServiceImpl;
 use handler::draw::draw;
@@ -33,6 +34,7 @@ struct AppState {
     // Webサーバなどで「1つのサービスを複数リクエストで共有」したいときに使う
     pub player_service: Arc<dyn PlayerService>,
     pub game_service: Arc<dyn GameService>,
+    pub timezone: FixedOffset,
 }
 
 struct Repositories {
@@ -75,9 +77,13 @@ async fn create_app(db: sea_orm::DatabaseConnection) -> Router {
     let repositories = init_repositories(db);
     let services = init_services(repositories);
 
+    // tokyo
+    let timezone = FixedOffset::east_opt(9 * 3_600).unwrap();
+
     let state = AppState {
         player_service: Arc::new(services.player_service),
         game_service: Arc::new(services.game_service),
+        timezone,
     };
 
     Router::new()

@@ -1,8 +1,7 @@
 use crate::{
-    infrastructure::db::entity::{game, sea_orm_active_enums::Enum},
-    repository::{error::RepositoryError, game_repository::GameRepository},
+    domain::models::game::GamePlayer, infrastructure::db::entity::{game, game_player, sea_orm_active_enums::Enum}, repository::{error::RepositoryError, game_repository::GameRepository}
 };
-use chrono::Utc;
+use chrono::{FixedOffset, Utc};
 use sea_orm::EntityTrait;
 use sea_orm::{ActiveModelTrait, ActiveValue::Set, DatabaseConnection};
 use std::sync::Arc;
@@ -44,7 +43,34 @@ impl GameRepository for GameRepositoryImpl {
         &self,
         game_id: i32,
         player_ids: Vec<i32>,
-    ) -> Result<(), RepositoryError> {
-        Ok(())
+    ) -> Result<Vec<GamePlayer>, RepositoryError> {
+        let mut players = Vec::new();
+        let now = Utc::now().with_timezone(&FixedOffset::east_opt(0).unwrap());
+        
+        for player_id in player_ids {
+            let player = game_player::ActiveModel {
+                game_id: Set(game_id),
+                player_id: Set(*player_id),
+                hand: Set(None),
+                created_at: Set(now.into()),
+                updated_at: Set(now.into()),
+            };
+
+            let result = player.insert(&*self.db).await;
+            match result {
+                Ok(player) => {
+                    players.push(
+                        GamePlayer {
+                            game_id:
+                        }
+                    )
+                }
+            }
+
+        }}
+
+        Err(RepositoryError::Internal(()));
     }
 }
+
+impl 
