@@ -3,6 +3,7 @@ use crate::{
     repository::{error::RepositoryError, game_repository::GameRepository},
 };
 use chrono::Utc;
+use sea_orm::EntityTrait;
 use sea_orm::{ActiveModelTrait, ActiveValue::Set, DatabaseConnection};
 use std::sync::Arc;
 
@@ -31,7 +32,19 @@ impl GameRepository for GameRepositoryImpl {
             }
         }
     }
-    async fn create_game_players(&self, player_ids: Vec<i32>) -> Result<(), RepositoryError> {
+
+    async fn find_game(&self, id: i32) -> Result<game::Model, RepositoryError> {
+        match game::Entity::find_by_id(id).one(&*self.db).await {
+            Ok(Some(game)) => Ok(game),
+            Ok(None) => Err(RepositoryError::NotFound),
+            Err(e) => Err(RepositoryError::Internal(format!("DB error: {e}"))),
+        }
+    }
+    async fn create_game_players(
+        &self,
+        game_id: i32,
+        player_ids: Vec<i32>,
+    ) -> Result<(), RepositoryError> {
         Ok(())
     }
 }

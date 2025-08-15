@@ -42,7 +42,7 @@ struct Repositories {
 
 struct Services {
     player_service: PlayerServiceImpl<PlayerRepositoryImpl>,
-    game_service: GameServiceImpl<GameRepositoryImpl>,
+    game_service: GameServiceImpl<GameRepositoryImpl, PlayerRepositoryImpl>,
 }
 
 fn init_repositories(db: Arc<DatabaseConnection>) -> Repositories {
@@ -60,7 +60,8 @@ fn init_services(repositories: Repositories) -> Services {
         repository: repositories.player_repository,
     };
     let game_service = GameServiceImpl {
-        repository: repositories.game_repository,
+        game_repository: repositories.game_repository,
+        player_repository: repositories.player_repository,
     };
 
     Services {
@@ -85,6 +86,7 @@ async fn create_app(db: sea_orm::DatabaseConnection) -> Router {
         .route("/v1/player", post(create_player))
         .route("/v1/player/{id}", get(get_player))
         .route("/v1/game", post(create_game))
+        .route("/v1/game/join", post(join_game))
         .layer(CorsLayer::permissive())
         .with_state(state)
 }
