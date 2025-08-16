@@ -4,8 +4,7 @@ use crate::{
         services::game_service::GameService,
     },
     error::error::AppError,
-    handler::game,
-    infrastructure::db::entity::game_player,
+    infrastructure::db::entity::{game_player, sea_orm_active_enums::Enum},
     repository::{
         error::RepositoryError, game_repository::GameRepository,
         player_repository::PlayerRepository,
@@ -18,8 +17,10 @@ pub struct GameServiceImpl<GR: GameRepository, PR: PlayerRepository> {
 }
 
 #[async_trait::async_trait]
-impl<R: GameRepository + Send + Sync> GameService for GameServiceImpl<GR, PR> {
-    async fn create_new_game(&self, player_ids: Vec<i32>) -> Result<i32, AppError> {
+impl<GR: GameRepository + Send + Sync, PR: PlayerRepository + Send + Sync> GameService
+    for GameServiceImpl<GR, PR>
+{
+    async fn create_new_game(&self) -> Result<i32, AppError> {
         let game_id = match self.game_repository.create_new_game().await {
             Ok(id) => id,
             Err(e) => return Err(AppError::Internal(format!("create game error: {e}"))),
@@ -30,27 +31,62 @@ impl<R: GameRepository + Send + Sync> GameService for GameServiceImpl<GR, PR> {
         Ok(game_id)
     }
 
+    async fn start_game(&self, game_id: i32) -> Result<(), AppError> {
+        match self.game_repository.find(game_id).await {
+            Ok(game) => {
+                if game.status != Enum::Waiting {
+                    Err(AppError::bad_request(format!(
+                        "game already started. game_id: {}",
+                        game.id
+                    )))
+                } else {
+                    match self.game_repository.update(game_id, Enum::InProgress).await {
+                        Ok(_) => Ok(()),
+                        Err(RepositoryError::NotFound) => Err(AppError::not_found()),
+                        Err(err) => Err(AppError::Internal(err.to_string())),
+                    }
+                    // todo: in_progress にupdate
+                }
+            }
+            Err(err) => Err(AppError::Internal(err.to_string())),
+        }
+    }
+
+    // ゲームに参加する
     async fn join_game(&self, game_id: i32, player_id: i32) -> Result<GamePlayer, AppError> {
-        match self.game_repository.find_game(game_id).await {
-            Err(RepositoryError::NotFound) => Err(AppError::NotFound()),
-            Err(RepositoryError::Internal(err)) => Err(AppError::Internal(err)),
-            Ok(game) => Ok(()),
-        };
+        match self.game_repository.find(game_id).await {
+            Ok(game) => {
+                if game.status != Enum::Waiting {
+                    Err(AppError::bad_request(format!(
+                        "game already started. game_id: {}",
+                        game.id
+                    )))
+                } else {
+                    Ok(())
+                }
+            }
+            Err(RepositoryError::NotFound) => Err(AppError::not_found_with_msg("game not found")),
+            Err(err) => Err(AppError::Internal(err.to_string())),
+        }?;
 
         match self.player_repository.get_player(player_id).await {
-            Err(RepositoryError::NotFound) => Err(AppError::NotFound()),
-            Err(RepositoryError::Internal(err)) => Err(AppError::Internal(err)),
-            Ok(player) => Ok(()),
-        };
+            Ok(_) => Ok(()),
+            Err(RepositoryError::NotFound) => Err(AppError::not_found_with_msg("player not found")),
+            Err(err) => Err(AppError::Internal(err.to_string())),
+        }?;
 
-        // TODO: 複数返ってくるので自分を探す
         match self
             .game_repository
-            .create_game_players(game_id, [player_id])
+            .create_game_players(game_id, vec![player_id])
             .await
         {
-            Ok(players) => players,
-            Err(e) => return Err(AppError::Internal(e)),
+            Ok(players) => players
+                .into_iter()
+                .find(|player| player.player_id == player_id)
+                .ok_or_else(|| {
+                    AppError::Internal(format!("game player not found after create: {}", player_id))
+                }),
+            Err(e) => return Err(AppError::Internal(e.to_string())),
         }
     }
 }

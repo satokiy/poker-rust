@@ -1,5 +1,6 @@
 use crate::{
-    domain::models::game::GamePlayer, infrastructure::db::entity::game,
+    domain::models::game::GamePlayer,
+    infrastructure::db::entity::{game, sea_orm_active_enums::Enum},
     repository::error::RepositoryError,
 };
 
@@ -7,7 +8,9 @@ use crate::{
 pub trait GameRepository {
     async fn create_new_game(&self) -> Result<i32, RepositoryError>;
 
-    async fn find_game(&self, id: i32) -> Result<game::Model, RepositoryError>;
+    async fn find(&self, id: i32) -> Result<game::Model, RepositoryError>;
+
+    async fn update(&self, id: i32, status: Enum) -> Result<(), RepositoryError>;
 
     async fn create_game_players(
         &self,
