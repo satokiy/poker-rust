@@ -6,7 +6,7 @@ use crate::{
 
 #[async_trait::async_trait]
 pub trait GameRepository {
-    async fn create_new_game(&self) -> Result<i32, RepositoryError>;
+    async fn create_new(&self) -> Result<i32, RepositoryError>;
 
     async fn find(&self, id: i32) -> Result<game::Model, RepositoryError>;
 

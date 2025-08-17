@@ -14,7 +14,7 @@ pub struct GameRepositoryImpl {
 
 #[async_trait::async_trait]
 impl GameRepository for GameRepositoryImpl {
-    async fn create_new_game(&self) -> Result<i32, RepositoryError> {
+    async fn create_new(&self) -> Result<i32, RepositoryError> {
         let now = Utc::now();
         let game = game::ActiveModel {
             status: Set(Enum::Waiting),
@@ -80,8 +80,8 @@ impl GameRepository for GameRepositoryImpl {
             .map(|id| game_player::ActiveModel {
                 game_id: Set(game_id),
                 player_id: Set(*id),
-                hand: Set(None),
-                created_at: Set(now.into()),
+                hand: Set(None), // 参加時点では手札はなし
+                created_at: Set(now),
                 updated_at: Set(now.into()),
             })
             .collect();

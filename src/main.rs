@@ -25,7 +25,12 @@ use anyhow::Result;
 
 use crate::domain::services::game_service::GameService;
 use crate::domain::services::game_service_impl::GameServiceImpl;
+use crate::handler::game::{join_game, start_game};
+use crate::infrastructure::repository::deck_repository_impl::DeckRepositoryImpl;
 use crate::infrastructure::repository::game_repository_impl::GameRepositoryImpl;
+use crate::repository::deck_repository::DeckRepository;
+use crate::repository::game_repository::GameRepository;
+use crate::repository::player_repository::PlayerRepository;
 
 // アプリ全体で共有したい状態やサービスをまとめた構造体。リクエストハンドラに依存を注入するために定義
 #[derive(Clone)]
@@ -38,37 +43,41 @@ struct AppState {
 }
 
 struct Repositories {
-    player_repository: PlayerRepositoryImpl,
-    game_repository: GameRepositoryImpl,
+    player_repository: Arc<dyn PlayerRepository + Send + Sync>,
+    game_repository: Arc<dyn GameRepository + Send + Sync>,
+    deck_repository: Arc<dyn DeckRepository + Send + Sync>,
 }
 
 struct Services {
-    player_service: PlayerServiceImpl<PlayerRepositoryImpl>,
-    game_service: GameServiceImpl<GameRepositoryImpl, PlayerRepositoryImpl>,
+    player_service: Arc<dyn PlayerService>,
+    game_service: Arc<dyn GameService>,
 }
 
 fn init_repositories(db: Arc<DatabaseConnection>) -> Repositories {
-    let player_repository = PlayerRepositoryImpl { db: db.clone() };
-    let game_repository = GameRepositoryImpl { db: db.clone() };
+    let player_repository = Arc::new(PlayerRepositoryImpl { db: db.clone() });
+    let game_repository = Arc::new(GameRepositoryImpl { db: db.clone() });
+    let deck_repository = Arc::new(DeckRepositoryImpl { db: db.clone() });
 
     Repositories {
         player_repository,
         game_repository,
+        deck_repository,
     }
 }
 
 fn init_services(repositories: Repositories) -> Services {
     let player_service = PlayerServiceImpl {
-        repository: repositories.player_repository,
+        repository: repositories.player_repository.clone(),
     };
     let game_service = GameServiceImpl {
-        game_repository: repositories.game_repository,
-        player_repository: repositories.player_repository,
+        game_repository: repositories.game_repository.clone(),
+        player_repository: repositories.player_repository.clone(),
+        deck_repository: repositories.deck_repository.clone(),
     };
 
     Services {
-        player_service,
-        game_service,
+        player_service: Arc::new(player_service),
+        game_service: Arc::new(game_service),
     }
 }
 
@@ -81,8 +90,8 @@ async fn create_app(db: sea_orm::DatabaseConnection) -> Router {
     let timezone = FixedOffset::east_opt(9 * 3_600).unwrap();
 
     let state = AppState {
-        player_service: Arc::new(services.player_service),
-        game_service: Arc::new(services.game_service),
+        player_service: services.player_service,
+        game_service: services.game_service,
         timezone,
     };
 
@@ -93,6 +102,7 @@ async fn create_app(db: sea_orm::DatabaseConnection) -> Router {
         .route("/v1/player/{id}", get(get_player))
         .route("/v1/game", post(create_game))
         .route("/v1/game/join", post(join_game))
+        .route("/v1/game/start", post(start_game))
         .layer(CorsLayer::permissive())
         .with_state(state)
 }

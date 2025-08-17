@@ -25,7 +25,7 @@ pub enum CardNumber {
     King,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Card {
     pub suit: Suit,
     pub number: CardNumber,

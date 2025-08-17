@@ -1,7 +1,6 @@
 use thiserror::Error;
-use tracing_subscriber::fmt::format;
 
-#[derive(Debug, Error)]
+#[derive(Debug, Error, Clone)]
 pub enum AppError {
     #[error("not found: ")]
     NotFound(Option<String>),
@@ -18,10 +17,10 @@ impl AppError {
         AppError::NotFound(None)
     }
     pub fn not_found_with_msg(msg: impl Into<String>) -> Self {
-        AppError::NotFound(Some(format!("{}", msg.into())))
+        AppError::NotFound(Some(msg.into()))
     }
 
     pub fn bad_request(msg: impl Into<String>) -> Self {
-        AppError::BadRequest(Some(format!("{}", msg.into())))
+        AppError::BadRequest(msg.into())
     }
 }
