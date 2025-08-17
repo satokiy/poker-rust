@@ -4,6 +4,7 @@ mod handler;
 mod infrastructure;
 mod repository;
 
+use axum::routing::put;
 // API framework routing
 use axum::{routing::get, routing::post, Router};
 use chrono::FixedOffset;
@@ -26,6 +27,7 @@ use anyhow::Result;
 use crate::domain::services::game_service::GameService;
 use crate::domain::services::game_service_impl::GameServiceImpl;
 use crate::handler::game::{join_game, start_game};
+use crate::handler::game_player::get_players;
 use crate::infrastructure::repository::deck_repository_impl::DeckRepositoryImpl;
 use crate::infrastructure::repository::game_repository_impl::GameRepositoryImpl;
 use crate::repository::deck_repository::DeckRepository;
@@ -95,16 +97,34 @@ async fn create_app(db: sea_orm::DatabaseConnection) -> Router {
         timezone,
     };
 
-    Router::new()
-        .route("/health", get(health))
-        .route("/v1/decks/draw", post(draw))
-        .route("/v1/player", post(create_player))
-        .route("/v1/player/{id}", get(get_player))
-        .route("/v1/game", post(create_game))
-        .route("/v1/game/join", post(join_game))
-        .route("/v1/game/start", post(start_game))
-        .layer(CorsLayer::permissive())
-        .with_state(state)
+    Router::new().nest(
+        "/v1",
+        Router::new()
+            .route("/health", get(health))
+            .nest(
+                "/player",
+                Router::new()
+                    .route("/", post(create_player))
+                    .route("/{id}", post(get_player)),
+            )
+            .nest(
+                "/game",
+                Router::new()
+                    .route("/", post(create_game))
+                    .route("/{game_id}/join", post(join_game))
+                    .route("/{game_id}/start", put(start_game))
+                    .nest(
+                        "/{game_id}/player",
+                        Router::new()
+                            .route("/", get(get_players))
+                            .route("/{player_id}/deck/draw", post(draw))
+                            .route("/{player_id}/hand/exchange", post(exchange_hand))
+                            .route("/{player_id}/hand/judge", post(judge_hand)),
+                    ),
+            )
+            .layer(CorsLayer::permissive())
+            .with_state(state),
+    )
 }
 
 #[tokio::main]

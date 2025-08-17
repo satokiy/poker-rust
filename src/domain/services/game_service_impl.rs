@@ -100,19 +100,25 @@ impl GameService for GameServiceImpl {
             Err(e) => return Err(AppError::Internal(e.to_string())),
         }
     }
-}
 
-impl game_player::Model {
-    fn to_game_player(&self) -> GamePlayer {
-        let hand = match &self.hand {
-            Some(json) => serde_json::from_value::<[Card; 5]>(json.clone()).ok(),
-            None => None,
-        };
-
-        GamePlayer {
-            game_id: self.game_id,
-            player_id: self.player_id,
-            hand,
-        }
+    async fn get_players(&self, game_id: i32) -> Result<Vec<GamePlayer>, AppError> {
+        // TODO: 必要になったら実装
+        todo!("not implemented");
+        Ok(vec![])
     }
 }
+
+// impl game_player::Model {
+//     fn to_game_player(&self) -> GamePlayer {
+//         let hand = match &self.hand {
+//             Some(json) => serde_json::from_value::<[Card; 5]>(json.clone()).ok(),
+//             None => None,
+//         };
+
+//         GamePlayer {
+//             game_id: self.game_id,
+//             player_id: self.player_id,
+//             hand,
+//         }
+//     }
+// }
