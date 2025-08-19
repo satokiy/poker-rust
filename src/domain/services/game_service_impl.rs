@@ -1,8 +1,14 @@
 use std::sync::Arc;
 
+use serde_json::Value;
+
 use crate::{
     domain::{
-        models::{card::Card, deck::Deck, game::GamePlayer},
+        models::{
+            card::{Card, CardNumber},
+            deck::Deck,
+            game::GamePlayer,
+        },
         services::game_service::GameService,
     },
     error::error::AppError,
@@ -63,7 +69,7 @@ impl GameService for GameServiceImpl {
     }
 
     // ゲームに参加する
-    async fn join_game(&self, game_id: i32, player_id: i32) -> Result<GamePlayer, AppError> {
+    async fn join_game(&self, game_id: i32, player_id: i32) -> Result<(), AppError> {
         match self.game_repository.find(game_id).await {
             Ok(game) => {
                 // 開始済みのゲームには参加できない
@@ -91,12 +97,7 @@ impl GameService for GameServiceImpl {
             .create_game_players(game_id, vec![player_id])
             .await
         {
-            Ok(players) => players
-                .into_iter()
-                .find(|player| player.player_id == player_id)
-                .ok_or_else(|| {
-                    AppError::Internal(format!("game player not found after create: {player_id}"))
-                }),
+            Ok(_) => Ok(()),
             Err(e) => return Err(AppError::Internal(e.to_string())),
         }
     }
@@ -104,7 +105,26 @@ impl GameService for GameServiceImpl {
     async fn get_players(&self, game_id: i32) -> Result<Vec<GamePlayer>, AppError> {
         // TODO: 必要になったら実装
         todo!("not implemented");
-        Ok(vec![])
+        // Ok(vec![])
+    }
+
+    async fn draw_cards(&self, game_id: i32, num: i32) -> Result<Vec<Card>, AppError> {
+        let mut cards: Vec<Card> = Vec::new();
+
+        for _ in 0..num {
+            let card: Value = match self.deck_repository.pop(game_id).await {
+                Ok(card) => card,
+                Err(RepositoryError::NotFound) => return Err(AppError::not_found()),
+                Err(e) => return Err(AppError::Internal(e.to_string())),
+            };
+            let c = Card {
+                suit: card["suit"].as_str().unwrap().parse().unwrap(),
+                number: CardNumber::try_from(card["number"].as_i64().unwrap()).unwrap(),
+            };
+            cards.push(c)
+        }
+
+        Ok(cards)
     }
 }
 

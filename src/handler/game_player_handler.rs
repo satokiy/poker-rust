@@ -1,5 +1,6 @@
 use crate::{
     domain::models::card::{CardNumber, Suit},
+    handler::card::Card,
     AppState,
 };
 use axum::{
@@ -7,13 +8,7 @@ use axum::{
     response::IntoResponse,
     Json,
 };
-use serde::Serialize;
-
-#[derive(Serialize)]
-pub struct Card {
-    suit: Suit,
-    number: CardNumber,
-}
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize)]
 pub struct GamePlayer {
@@ -56,11 +51,28 @@ impl crate::domain::models::game::GamePlayer {
     }
 }
 
-impl crate::domain::models::card::Card {
-    fn to_card(&self) -> Card {
-        Card {
-            suit: self.suit,
-            number: self.number,
-        }
-    }
+#[derive(Deserialize)]
+pub struct ExchangeHandRequest {
+    cards: Vec<Card>,
+}
+
+pub async fn exchange_hand(
+    State(state): State<AppState>,
+    Path(player_id): Path<i32>,
+    Json(req): Json<ExchangeHandRequest>,
+) -> impl IntoResponse {
+    todo!("not implmented");
+}
+
+#[derive(Deserialize)]
+pub struct JudgeHandRequest {
+    cards: Vec<Card>,
+}
+
+pub async fn judge_hand(
+    State(state): State<AppState>,
+    Path(player_id): Path<i32>,
+    Json(req): Json<JudgeHandRequest>,
+) -> impl IntoResponse {
+    todo!("not implmented");
 }

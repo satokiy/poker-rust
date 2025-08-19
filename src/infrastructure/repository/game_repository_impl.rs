@@ -1,5 +1,4 @@
 use crate::{
-    domain::models::game::GamePlayer,
     infrastructure::db::entity::{game, game_player, player, sea_orm_active_enums::Enum},
     repository::{error::RepositoryError, game_repository::GameRepository},
 };
@@ -60,7 +59,7 @@ impl GameRepository for GameRepositoryImpl {
         &self,
         game_id: i32,
         player_ids: Vec<i32>,
-    ) -> Result<Vec<GamePlayer>, RepositoryError> {
+    ) -> Result<Vec<game_player::Model>, RepositoryError> {
         let exist_ids = player::Entity::find()
             .select_only()
             .select_column(player::Column::Id)
@@ -80,7 +79,7 @@ impl GameRepository for GameRepositoryImpl {
             .map(|id| game_player::ActiveModel {
                 game_id: Set(game_id),
                 player_id: Set(*id),
-                hand: Set(None), // 参加時点では手札はなし
+                hand: Set(None), // 作成時点では手札はなし
                 created_at: Set(now),
                 updated_at: Set(now.into()),
             })
@@ -90,14 +89,11 @@ impl GameRepository for GameRepositoryImpl {
             .exec(&*self.db)
             .await?;
 
-        let players = player_ids
-            .into_iter()
-            .map(|player_id| GamePlayer {
-                game_id,
-                player_id,
-                hand: None,
-            })
-            .collect();
+        let players = game_player::Entity::find()
+            .filter(game_player::Column::GameId.eq(game_id))
+            .filter(game_player::Column::PlayerId.is_in(player_ids))
+            .all(&*self.db)
+            .await?;
 
         Ok(players)
     }

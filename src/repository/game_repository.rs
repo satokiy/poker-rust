@@ -1,6 +1,5 @@
 use crate::{
-    domain::models::game::GamePlayer,
-    infrastructure::db::entity::{game, sea_orm_active_enums::Enum},
+    infrastructure::db::entity::{game, game_player, sea_orm_active_enums::Enum},
     repository::error::RepositoryError,
 };
 
@@ -16,5 +15,5 @@ pub trait GameRepository {
         &self,
         game_id: i32,
         player_ids: Vec<i32>,
-    ) -> Result<Vec<GamePlayer>, RepositoryError>;
+    ) -> Result<Vec<game_player::Model>, RepositoryError>;
 }
