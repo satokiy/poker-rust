@@ -10,7 +10,7 @@ use axum::{routing::get, routing::post, Router};
 use chrono::FixedOffset;
 use domain::services::player_service::PlayerService;
 use domain::services::player_service_impl::PlayerServiceImpl;
-use handler::draw_handler::draw;
+use handler::draw_handler::deal;
 use handler::game_handler::create_game;
 use handler::health_handler::health;
 use handler::player_handler::{create_player, get_player};
@@ -105,7 +105,7 @@ async fn create_app(db: sea_orm::DatabaseConnection) -> Router {
                 "/player",
                 Router::new()
                     .route("/", post(create_player))
-                    .route("/{id}", post(get_player)),
+                    .route("/{id}", get(get_player)),
             )
             .nest(
                 "/game",
@@ -113,11 +113,11 @@ async fn create_app(db: sea_orm::DatabaseConnection) -> Router {
                     .route("/", post(create_game))
                     .route("/{game_id}/join", post(join_game))
                     .route("/{game_id}/start", put(start_game))
+                    .route("/{game_id}/deal", post(deal))
                     .nest(
                         "/{game_id}/player",
                         Router::new()
                             .route("/", get(get_players))
-                            .route("/{player_id}/deck/draw", post(draw))
                             .route("/{player_id}/hand/exchange", post(exchange_hand))
                             .route("/{player_id}/hand/judge", post(judge_hand)),
                     ),

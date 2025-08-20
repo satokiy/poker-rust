@@ -3,7 +3,7 @@ use crate::{
     repository::{error::RepositoryError, game_repository::GameRepository},
 };
 use chrono::{FixedOffset, Utc};
-use sea_orm::{ActiveModelTrait, ActiveValue::Set, DatabaseConnection};
+use sea_orm::{prelude::Expr, ActiveModelTrait, ActiveValue::Set, DatabaseConnection};
 use sea_orm::{ColumnTrait, EntityTrait, QueryFilter, QuerySelect, SelectColumns};
 use std::sync::Arc;
 
@@ -42,16 +42,19 @@ impl GameRepository for GameRepositoryImpl {
     }
 
     async fn update(&self, id: i32, status: Enum) -> Result<(), RepositoryError> {
-        let result = game::Entity::update_many()
-            .col_expr(game::Column::Status, status.into())
-            .filter(game::Column::Id.eq(id))
-            .exec(&*self.db)
-            .await?;
+        let game = match game::Entity::find_by_id(id).one(&*self.db).await {
+            Ok(Some(game)) => game,
+            Ok(None) => return Err(RepositoryError::NotFound),
+            Err(e) => return Err(RepositoryError::Internal(format!("DB error: {e}"))),
+        };
 
-        if result.rows_affected == 0 {
-            Err(RepositoryError::NotFound)
-        } else {
-            Ok(())
+        let mut active_game: game::ActiveModel = game.into();
+        active_game.status = Set(status);
+        let result = active_game.update(&*self.db).await;
+
+        match result {
+            Ok(_) => Ok(()),
+            Err(e) => Err(RepositoryError::Internal(e.to_string())),
         }
     }
 

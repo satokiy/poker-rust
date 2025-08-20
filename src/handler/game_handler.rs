@@ -43,7 +43,6 @@ pub async fn join_game(
 pub async fn start_game(
     State(state): State<AppState>,
     Path(game_id): Path<i32>,
-    // Json(req): Json<StartGameRequest>,
 ) -> impl IntoResponse {
     let result = state.game_service.start_game(game_id).await;
 

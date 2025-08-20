@@ -10,5 +10,5 @@ pub trait DeckRepository {
         cards: serde_json::Value,
     ) -> Result<i32, RepositoryError>;
 
-    async fn pop(&self, deck_id: i32) -> Result<JsonValue, RepositoryError>;
+    async fn pop(&self, deck_id: i32, num: i32) -> Result<Vec<JsonValue>, RepositoryError>;
 }

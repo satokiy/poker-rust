@@ -108,7 +108,12 @@ impl GameService for GameServiceImpl {
         // Ok(vec![])
     }
 
-    async fn draw_cards(&self, game_id: i32, num: i32) -> Result<Vec<Card>, AppError> {
+    async fn deal(
+        &self,
+        game_id: i32,
+        player_id: i32,
+        num: i32,
+    ) -> Result<Vec<GamePlayer>, AppError> {
         let mut cards: Vec<Card> = Vec::new();
 
         for _ in 0..num {
