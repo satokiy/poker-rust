@@ -1,9 +1,5 @@
-use crate::error::error::AppError;
-use crate::handler::error::ErrorResponse;
 use crate::AppState;
-
 use axum::extract::{Path, State};
-use axum::http::StatusCode;
 use axum::response::{IntoResponse, Json};
 use serde::{Deserialize, Serialize};
 
@@ -27,15 +23,11 @@ pub async fn create_player(
     State(state): State<AppState>,
     Json(req): Json<CreatePlayerRequest>,
 ) -> impl IntoResponse {
-    let res = state.player_service.create_player(req.name).await;
+    let result = state.player_service.create_player(req.name).await;
 
-    match res {
+    match result {
         Ok(id) => Json(CreatePlayerResponse { id }).into_response(),
-        Err(e) => (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            Json(ErrorResponse::from_err(e)).into_response(),
-        )
-            .into_response(),
+        Err(e) => e.to_response(),
     }
 }
 
@@ -47,15 +39,6 @@ pub async fn get_player(State(state): State<AppState>, Path(id): Path<i32>) -> i
             name: player.name,
         })
         .into_response(),
-        Err(AppError::NotFound()) => (
-            StatusCode::NOT_FOUND,
-            Json(ErrorResponse::from_err(AppError::NotFound())).into_response(),
-        )
-            .into_response(),
-        Err(e) => (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            Json(ErrorResponse::from_err(e)).into_response(),
-        )
-            .into_response(),
+        Err(e) => e.to_response(),
     }
 }

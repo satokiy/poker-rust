@@ -1,3 +1,5 @@
+use rand::seq::SliceRandom;
+
 use crate::domain::models::card::*;
 
 static SUITS: [Suit; 4] = [Suit::Heart, Suit::Diamond, Suit::Spade, Suit::Club];
@@ -19,7 +21,7 @@ static NUMBERS: [CardNumber; 13] = [
 ];
 
 pub struct Deck {
-    cards: Vec<Card>,
+    pub cards: Vec<Card>,
 }
 
 impl Deck {
@@ -34,6 +36,14 @@ impl Deck {
             }
         }
         Deck { cards }
+    }
+
+    pub fn shuffle(&self) -> Deck {
+        let mut copy = self.cards.clone();
+        let mut rng = rand::rng();
+        copy.shuffle(&mut rng);
+
+        Deck { cards: copy }
     }
 
     pub fn draw(&mut self) -> Option<Card> {

@@ -5,6 +5,9 @@ pub enum RepositoryError {
     #[error("not found")]
     NotFound,
 
+    #[error("bad request: {0}")]
+    BadRequest(String),
+
     #[error("internal server error: {0}")]
     Internal(String),
 

@@ -6,9 +6,10 @@ use sea_orm::ActiveModelTrait;
 use sea_orm::DatabaseConnection;
 use sea_orm::EntityTrait;
 use sea_orm::Set;
+use std::sync::Arc;
 
 pub struct PlayerRepositoryImpl {
-    pub db: DatabaseConnection,
+    pub db: Arc<DatabaseConnection>,
 }
 
 #[async_trait::async_trait]
@@ -22,7 +23,7 @@ impl PlayerRepository for PlayerRepositoryImpl {
             ..Default::default()
         };
 
-        let res = player.insert(&self.db).await;
+        let res = player.insert(&*self.db).await;
 
         match res {
             Ok(player) => Ok(player.id),
@@ -36,7 +37,7 @@ impl PlayerRepository for PlayerRepositoryImpl {
     }
 
     async fn get_player(&self, id: i32) -> Result<player::Model, RepositoryError> {
-        let res = player::Entity::find_by_id(id).one(&self.db).await;
+        let res = player::Entity::find_by_id(id).one(&*self.db).await;
 
         match res {
             Ok(Some(player)) => Ok(player),
